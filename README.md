@@ -48,7 +48,7 @@ Suppose as well that you have a target asset allocation. For example:
 | VXUS  | 16%               |
 | BND   | 20%               |
 Using this app you will know how much of each asset to invest in order to be as close as possible 
-to your target allocation.
+to your target allocation - without selling any of your current assets.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
