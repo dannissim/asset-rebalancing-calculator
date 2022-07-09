@@ -63,27 +63,49 @@ to your target allocation - without selling any of your current assets.
 
 ## Usage
 
-[//]: # (TODO)
 1. Fill `input.json` with:
    1. `target_allocation` - the percent you would like each asset to be in your portfolio.
-   2. `deposit_amount` - how many dollars you are adding to your portfolio
-   3. `current_market_value` - what your portfolio 
-2. Add your stock list and contact info to `config.json`.
-3. Create a virtual environment (optional):  
+   2. `deposit_amount` - how many dollars you are adding to your portfolio.
+   3. `current_holdings` - How much do you have of each asset currently in your portfolio. 
+2. Create a virtual environment (optional):  
     a. `python -m venv venv`  
     b. `venv\Scripts\activate` or in linux `source venv/bin/activate`
-4. install the requirements: `pip install -r requirements.txt`
-5. Run `python main.py`
+3. install the requirements: `pip install -r requirements.txt`
+4. Run `python main.py`
+5. Then the result will appear in a newly created file `result.json`. 
 
 ### What does it do?
 [//]: # (TODO)
-This app checks your list of stocks to see if a price has dropped significatly lower  
-than its 200 day simple moving average a.k.a [SMA](https://www.investopedia.com/terms/s/sma.asp).  
-When a stock price passes the threshold, you will receive an email that will notify you.
-
-<img src="static/new_email.png" alt="Email Notification" width="939" height="205">
-<img src="static/email_example.png" alt="Email Example" width="939" height="589">
-
+This app calculates the difference between your portfolio and the portfolio which has the same
+market value but with the target allocation, then recommends you to buy the assets in such a way
+that brings your portfolio as close as possible to the target portfolio allocation.  
+You're welcome to take a look at the [`input.json`](input.json) currently in the repository.  
+Here's an example for the content of the `result.json`:
+```json
+{
+  "current_allocation": {
+    "schd": 80.72,
+    "vtv": 45.8,
+    "upro": 28.14,
+    "_cash": -54.66
+  },
+  "new_allocation": {
+    "schd": 74.63,
+    "vtv": 48.93,
+    "upro": 25.55,
+    "_cash": -48.76
+  },
+  "amount_to_purchase": {
+    "_cash": 95,
+    "vtv": 6,
+    "schd": 2,
+    "upro": 0
+  }
+}
+```
+In the above example we can see that the app recommends to purchase 6 stocks of VTV, 2 of SCHD and  
+the $95 that are left from the deposited amount to leave as cash.  
+We can also see that the new allocation is much closer to the targeted allocation than we were beforehand.
 
 <!-- CONTRIBUTING -->
 ## Contributing

@@ -52,7 +52,7 @@ async def main():
     market_value_difference = _get_market_value_difference(current_market_value, user_input)
     amount_to_purchase = _get_amount_to_purchase(market_value_difference, user_input.deposit_amount,
                                                  asset_prices)
-    result = Result(current_allocation=_get_current_allocation(user_input.current_market_value),
+    result = Result(current_allocation=_get_current_allocation(current_market_value),
                     new_allocation=_get_new_allocation(user_input, asset_prices,
                                                        amount_to_purchase),
                     amount_to_purchase=amount_to_purchase)
@@ -83,10 +83,6 @@ def _get_market_value_difference(current_market_value: typing.Dict[str, float],
         asset: target_market_value[asset] - current_market_value[asset]
         for asset in current_market_value
     }
-
-
-def _get_new_total_market_value(asset_prices: typing.Dict[str, float], user_input: Input) -> float:
-    return
 
 
 async def _get_all_prices(assets: typing.Iterable[str]) -> typing.Dict[str, float]:
