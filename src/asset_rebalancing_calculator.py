@@ -72,19 +72,6 @@ def standardize_input(user_input: Input):
         user_input.target_allocation[CASH] = 0
 
 
-def _get_market_value_difference(current_market_value: typing.Dict[str, float],
-                                 user_input: Input) -> typing.Dict[str, float]:
-    new_total_market_value = sum(current_market_value.values()) + user_input.deposit_amount
-    target_market_value = {
-        asset: new_total_market_value * target_allocation / HUNDRED_PERCENT
-        for asset, target_allocation in user_input.target_allocation.items()
-    }
-    return {
-        asset: target_market_value[asset] - current_market_value[asset]
-        for asset in current_market_value
-    }
-
-
 async def _get_all_prices(assets: typing.Iterable[str]) -> typing.Dict[str, float]:
     prices = dict()
     assets_without_cash = [asset for asset in assets if asset != CASH]
@@ -98,6 +85,19 @@ async def _get_all_prices(assets: typing.Iterable[str]) -> typing.Dict[str, floa
             await asyncio.sleep(SECONDS_TO_WAIT_BETWEEN_API_CALLS)
     prices[CASH] = ONE_DOLLAR
     return prices
+
+
+def _get_market_value_difference(current_market_value: typing.Dict[str, float],
+                                 user_input: Input) -> typing.Dict[str, float]:
+    new_total_market_value = sum(current_market_value.values()) + user_input.deposit_amount
+    target_market_value = {
+        asset: new_total_market_value * target_allocation / HUNDRED_PERCENT
+        for asset, target_allocation in user_input.target_allocation.items()
+    }
+    return {
+        asset: target_market_value[asset] - current_market_value[asset]
+        for asset in current_market_value
+    }
 
 
 def _get_amount_to_purchase(market_value_difference: typing.Dict[str, float], deposit_amount: float,
