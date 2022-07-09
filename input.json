@@ -7,9 +7,9 @@
   },
   "deposit_amount": 1000,
   "current_market_value": {
-    "schd": 7600,
+    "schd": 7800,
     "vtv": 4600,
-    "upro": 2600,
-    "_cash": -4800
+    "upro": 3000,
+    "_cash": -5400
   }
 }

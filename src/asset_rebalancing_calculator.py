@@ -1,6 +1,3 @@
-#TODO: check naming
-#TODO: check dfs vs bfs design
-#TODO: make sure there's typing everywhere & return types
 import asyncio
 import json
 import os
@@ -20,7 +17,6 @@ FMP_API_URL = 'https://financialmodelingprep.com/api/v3'
 API_KEY_PARAM = {'apikey': os.environ['API_KEY']}
 SECONDS_TO_WAIT_BETWEEN_API_CALLS = 1
 JSON_INDENT = 2
-MOCK_PRICES = {'schd': 71.26, 'vtv': 131.09, 'upro': 35.575, '_cash': 1}
 PRICE_ROUTE = '/quote/{symbol}'
 PRICE_KEY = 'price'
 ONE_DOLLAR = 1
@@ -86,31 +82,26 @@ async def _get_all_prices(assets: typing.Iterable[str]) -> typing.Dict[str, floa
             prices[asset] = raw_response.json()[0][PRICE_KEY]
             # the free API has a rate limit
             await asyncio.sleep(SECONDS_TO_WAIT_BETWEEN_API_CALLS)
-    prices[CASH] = ONE_DOLLAR  # the price of one dollar is one dollar
+    prices[CASH] = ONE_DOLLAR
     return prices
 
 
 def _get_amount_to_purchase(market_value_difference: typing.Dict[str, float], deposit_amount: float,
                             asset_prices: typing.Dict[str, float]) -> typing.Dict[str, int]:
-    # TODO: make this function shorter & simpler
     amount_to_purchase = dict()
+    available_cash = deposit_amount
     if market_value_difference[CASH] < 0:
         amount_to_purchase[CASH] = market_value_difference[CASH]
-        available_cash = int(deposit_amount - market_value_difference[CASH])
-    else:
-        available_cash = deposit_amount
-    assets_without_cash = [asset for asset in market_value_difference if asset != CASH]
-    for asset in sorted(assets_without_cash, key=market_value_difference.get, reverse=True):
+        available_cash -= int(market_value_difference[CASH])
+    for asset in sorted(market_value_difference, key=market_value_difference.get, reverse=True):
         if market_value_difference[asset] < 0:
-            # TODO: rename amount_to_invest
-            amount_to_invest = 0
-            amount_of_stocks = 0
-        else:
-            amount_of_stocks = int(
-                min(available_cash, market_value_difference[asset]) / asset_prices[asset])
-            amount_to_invest = amount_of_stocks * asset_prices[asset]
-        available_cash -= amount_to_invest
-        amount_to_purchase[asset] = amount_of_stocks
+            amount_to_purchase[asset] = 0
+            continue
+        amount_of_units_to_purchase = int(
+            min(available_cash, market_value_difference[asset]) / asset_prices[asset])
+        market_value_of_units_to_purchase = amount_of_units_to_purchase * asset_prices[asset]
+        available_cash -= market_value_of_units_to_purchase
+        amount_to_purchase[asset] = amount_of_units_to_purchase
     amount_to_purchase[CASH] += available_cash
     return amount_to_purchase
 
@@ -118,11 +109,12 @@ def _get_amount_to_purchase(market_value_difference: typing.Dict[str, float], de
 def _get_current_allocation(
         current_market_value: typing.Dict[str, float]) -> typing.Dict[str, float]:
     total_market_value = sum(current_market_value.values())
-    return {
-        asset: round(HUNDRED_PERCENT * current_market_value[asset] / total_market_value,
-                     ROUND_PRECISION)
-        for asset in current_market_value
-    }
+    current_allocation = dict()
+    for asset in current_market_value:
+        current_allocation_of_asset = round(
+            HUNDRED_PERCENT * current_market_value[asset] / total_market_value, ROUND_PRECISION)
+        current_allocation[asset] = current_allocation_of_asset
+    return current_allocation
 
 
 def _get_new_allocation(user_input: Input, asset_prices: typing.Dict[str, float],
