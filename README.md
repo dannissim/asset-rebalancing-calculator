@@ -26,7 +26,7 @@
   </a>
 
 <h3 align="center">Asset Rebalancing Calculator</h3>
-  This app calculates how much of a new deposit, to invest in each asset,  
+  This app calculates how much of a new deposit to invest in each asset,  
   in order to keep your portfolio as balanced as possible.
   <p align="center">
     <br />
@@ -46,7 +46,7 @@ Suppose as well that you have a target asset allocation. For example:
 |-------|-------------------|
 | VTI   | 64%               |
 | VXUS  | 16%               |
-| BND   | 20%               |
+| BND   | 20%               |  
 Using this app you will know how much of each asset to invest in order to be as close as possible 
 to your target allocation - without selling any of your current assets.
 <p align="right">(<a href="#top">back to top</a>)</p>
