@@ -71,12 +71,13 @@ to your target allocation - without selling any of your current assets.
 2. Create a virtual environment (optional):  
     a. `python -m venv venv`  
     b. `venv\Scripts\activate` or in linux `source venv/bin/activate`
-3. install the requirements: `pip install -r requirements.txt`
-4. Run `python main.py`
-5. Then the result will appear in a newly created file `result.json`. 
+3. Install the requirements: `pip install -r requirements.txt`
+4. Set the environment variable API_KEY to your Free financial modeling prep API key.
+5. Run `python main.py`
+6. Then the result will appear in a newly created file `result.json`. 
 
 ### What does it do?
-[//]: # (TODO)
+
 This app calculates the difference between your portfolio and the portfolio which has the same
 market value but with the target allocation, then recommends you to buy the assets in such a way
 that brings your portfolio as close as possible to the target portfolio allocation.  
