@@ -15,7 +15,7 @@ ROUND_PRECISION = 2
 CASH = '_cash'
 FMP_API_URL = 'https://financialmodelingprep.com/api/v3'
 API_KEY_PARAM = {'apikey': os.environ['API_KEY']}
-SECONDS_TO_WAIT_BETWEEN_API_CALLS = 1
+SECONDS_TO_WAIT_BETWEEN_API_CALLS = 0.5
 JSON_INDENT = 2
 PRICE_ROUTE = '/quote/{symbol}'
 PRICE_KEY = 'price'
@@ -43,9 +43,9 @@ class Result(pydantic.BaseModel):
 
 async def main():
     user_input = Input.parse_obj(json.loads(INPUT_FILE_PATH.read_text()))
+    standardize_input(user_input)
     market_value_difference = _get_market_value_difference(user_input)
-    # asset_prices = await _get_all_prices(assets)
-    asset_prices = MOCK_PRICES
+    asset_prices = await _get_all_prices(user_input.current_market_value.keys())
     amount_to_purchase = _get_amount_to_purchase(market_value_difference, user_input.deposit_amount,
                                                  asset_prices)
     result = Result(current_allocation=_get_current_allocation(user_input.current_market_value),
@@ -53,6 +53,19 @@ async def main():
                                                        amount_to_purchase),
                     amount_to_purchase=amount_to_purchase)
     OUTPUT_FILE_PATH.write_text(json.dumps(result.dict(), indent=JSON_INDENT))
+
+
+def standardize_input(user_input: Input):
+    for asset in user_input.current_market_value:
+        if asset not in user_input.target_allocation:
+            user_input.target_allocation[asset] = 0
+    for asset in user_input.target_allocation:
+        if asset not in user_input.current_market_value:
+            user_input.current_market_value[asset] = 0
+    if CASH not in user_input.current_market_value:
+        user_input.current_market_value[CASH] = 0
+    if CASH not in user_input.target_allocation:
+        user_input.target_allocation[CASH] = 0
 
 
 def _get_market_value_difference(user_input: Input) -> typing.Dict[str, float]:
@@ -76,7 +89,7 @@ async def _get_all_prices(assets: typing.Iterable[str]) -> typing.Dict[str, floa
     assets_without_cash = [asset for asset in assets if asset != CASH]
     async with httpx.AsyncClient(base_url=FMP_API_URL) as fmp_client:
         for asset in assets_without_cash:
-            raw_response = await fmp_client.get(PRICE_ROUTE.format(symbol=asset),
+            raw_response = await fmp_client.get(PRICE_ROUTE.format(symbol=asset.upper()),
                                                 params=API_KEY_PARAM)
             raw_response.raise_for_status()
             prices[asset] = raw_response.json()[0][PRICE_KEY]
