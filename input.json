@@ -1,0 +1,15 @@
+{
+  "target_allocation": {
+    "schd": 75,
+    "vtv": 50,
+    "upro": 25,
+    "_cash": -50
+  },
+  "deposit_amount": 1000,
+  "current_holdings": {
+    "schd": 110,
+    "vtv": 34,
+    "upro": 73,
+    "_cash": -5400
+  }
+}
