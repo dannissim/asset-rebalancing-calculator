@@ -25,7 +25,7 @@ ONE_DOLLAR = 1
 class Input(pydantic.BaseModel):
     target_allocation: typing.Dict[str, float]
     deposit_amount: float
-    current_market_value: typing.Dict[str, float]
+    current_holdings: typing.Dict[str, float]
 
     @pydantic.validator('target_allocation')
     def must_sum_to_100(cls, target_allocation: typing.Dict[str, float]):
@@ -44,8 +44,12 @@ class Result(pydantic.BaseModel):
 async def main():
     user_input = Input.parse_obj(json.loads(INPUT_FILE_PATH.read_text()))
     standardize_input(user_input)
-    market_value_difference = _get_market_value_difference(user_input)
-    asset_prices = await _get_all_prices(user_input.current_market_value.keys())
+    asset_prices = await _get_all_prices(user_input.current_holdings.keys())
+    current_market_value = {
+        asset: asset_prices[asset] * user_input.current_holdings[asset]
+        for asset in asset_prices
+    }
+    market_value_difference = _get_market_value_difference(current_market_value, user_input)
     amount_to_purchase = _get_amount_to_purchase(market_value_difference, user_input.deposit_amount,
                                                  asset_prices)
     result = Result(current_allocation=_get_current_allocation(user_input.current_market_value),
@@ -56,32 +60,33 @@ async def main():
 
 
 def standardize_input(user_input: Input):
-    for asset in user_input.current_market_value:
+    for asset in user_input.current_holdings:
         if asset not in user_input.target_allocation:
             user_input.target_allocation[asset] = 0
     for asset in user_input.target_allocation:
-        if asset not in user_input.current_market_value:
-            user_input.current_market_value[asset] = 0
-    if CASH not in user_input.current_market_value:
-        user_input.current_market_value[CASH] = 0
+        if asset not in user_input.current_holdings:
+            user_input.current_holdings[asset] = 0
+    if CASH not in user_input.current_holdings:
+        user_input.current_holdings[CASH] = 0
     if CASH not in user_input.target_allocation:
         user_input.target_allocation[CASH] = 0
 
 
-def _get_market_value_difference(user_input: Input) -> typing.Dict[str, float]:
-    new_total_market_value = _get_new_total_market_value(user_input)
+def _get_market_value_difference(current_market_value: typing.Dict[str, float],
+                                 user_input: Input) -> typing.Dict[str, float]:
+    new_total_market_value = sum(current_market_value.values()) + user_input.deposit_amount
     target_market_value = {
         asset: new_total_market_value * target_allocation / HUNDRED_PERCENT
         for asset, target_allocation in user_input.target_allocation.items()
     }
     return {
-        asset: target_market_value[asset] - user_input.current_market_value[asset]
-        for asset in user_input.current_market_value
+        asset: target_market_value[asset] - current_market_value[asset]
+        for asset in current_market_value
     }
 
 
-def _get_new_total_market_value(user_input: Input) -> float:
-    return sum(user_input.current_market_value.values()) + user_input.deposit_amount
+def _get_new_total_market_value(asset_prices: typing.Dict[str, float], user_input: Input) -> float:
+    return
 
 
 async def _get_all_prices(assets: typing.Iterable[str]) -> typing.Dict[str, float]:
@@ -133,9 +138,12 @@ def _get_current_allocation(
 def _get_new_allocation(user_input: Input, asset_prices: typing.Dict[str, float],
                         amount_to_purchase: typing.Dict[str, int]) -> typing.Dict[str, float]:
     new_allocation = dict()
-    for asset in user_input.current_market_value:
-        new_market_value = (user_input.current_market_value[asset] +
-                            amount_to_purchase[asset] * asset_prices[asset])
-        new_proportion = new_market_value / _get_new_total_market_value(user_input)
+    new_total_market_value = sum(
+        asset_prices[asset] * user_input.current_holdings[asset]
+        for asset in user_input.current_holdings) + user_input.deposit_amount
+    for asset in user_input.current_holdings:
+        new_market_value = (user_input.current_holdings[asset] +
+                            amount_to_purchase[asset]) * asset_prices[asset]
+        new_proportion = new_market_value / new_total_market_value
         new_allocation[asset] = round(HUNDRED_PERCENT * new_proportion, ROUND_PRECISION)
     return new_allocation

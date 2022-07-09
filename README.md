@@ -57,9 +57,6 @@ to your target allocation - without selling any of your current assets.
 
 * [Python 3.9](https://python.org/)
 * [Financial Modeling Prep's free API](https://site.financialmodelingprep.com/)
-* [Free HTML Email Templates](https://unlayer.com/templates)
-* [Jinja2](https://jinja.palletsprojects.com/en/3.0.x/)
-* [PythonAnywhere](https://www.pythonanywhere.com/)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -67,12 +64,16 @@ to your target allocation - without selling any of your current assets.
 ## Usage
 
 [//]: # (TODO)
-1. Add your stock list and contact info to `config.json`.
-2. Create a virtual environment (optional):  
+1. Fill `input.json` with:
+   1. `target_allocation` - the percent you would like each asset to be in your portfolio.
+   2. `deposit_amount` - how many dollars you are adding to your portfolio
+   3. `current_market_value` - what your portfolio 
+2. Add your stock list and contact info to `config.json`.
+3. Create a virtual environment (optional):  
     a. `python -m venv venv`  
     b. `venv\Scripts\activate` or in linux `source venv/bin/activate`
-2. install the requirements: `pip install -r requirements.txt`
-2. Run `python main.py`
+4. install the requirements: `pip install -r requirements.txt`
+5. Run `python main.py`
 
 ### What does it do?
 [//]: # (TODO)
