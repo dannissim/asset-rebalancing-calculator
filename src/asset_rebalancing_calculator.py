@@ -44,18 +44,10 @@ class Result(pydantic.BaseModel):
 async def main():
     user_input = Input.parse_obj(json.loads(INPUT_FILE_PATH.read_text()))
     standardize_input(user_input)
-    # asset_prices = await _get_all_prices(user_input.current_holdings.keys())
-    asset_prices = {
-        'tqqq': 26.335,
-        'schd': 72.0802,
-        'bulz': 4.2101,
-        'gbtc': 12.92,
-        'ethe': 7.955,
-        '_cash': 1
-    }
+    asset_prices = await _get_all_prices(user_input.current_holdings.keys())
     current_market_value = {
         asset: asset_prices[asset] * user_input.current_holdings[asset]
-        for asset in user_input.current_holdings
+        for asset in asset_prices
     }
     market_value_difference = _get_market_value_difference(current_market_value, user_input)
     amount_to_purchase = _get_amount_to_purchase(market_value_difference, user_input.deposit_amount,
