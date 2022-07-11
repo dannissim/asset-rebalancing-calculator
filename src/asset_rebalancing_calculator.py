@@ -44,10 +44,18 @@ class Result(pydantic.BaseModel):
 async def main():
     user_input = Input.parse_obj(json.loads(INPUT_FILE_PATH.read_text()))
     standardize_input(user_input)
-    asset_prices = await _get_all_prices(user_input.current_holdings.keys())
+    # asset_prices = await _get_all_prices(user_input.current_holdings.keys())
+    asset_prices = {
+        'tqqq': 26.335,
+        'schd': 72.0802,
+        'bulz': 4.2101,
+        'gbtc': 12.92,
+        'ethe': 7.955,
+        '_cash': 1
+    }
     current_market_value = {
         asset: asset_prices[asset] * user_input.current_holdings[asset]
-        for asset in asset_prices
+        for asset in user_input.current_holdings
     }
     market_value_difference = _get_market_value_difference(current_market_value, user_input)
     amount_to_purchase = _get_amount_to_purchase(market_value_difference, user_input.deposit_amount,
@@ -105,10 +113,12 @@ def _get_amount_to_purchase(market_value_difference: typing.Dict[str, float], de
     amount_to_purchase = dict()
     available_cash = deposit_amount
     if market_value_difference[CASH] < 0:
-        amount_to_purchase[CASH] = market_value_difference[CASH]
+        amount_to_purchase[CASH] = int(market_value_difference[CASH])
         available_cash -= int(market_value_difference[CASH])
     for asset in sorted(market_value_difference, key=market_value_difference.get, reverse=True):
         if market_value_difference[asset] < 0:
+            if asset == CASH:
+                continue
             amount_to_purchase[asset] = 0
             continue
         amount_of_units_to_purchase = int(
@@ -116,7 +126,7 @@ def _get_amount_to_purchase(market_value_difference: typing.Dict[str, float], de
         market_value_of_units_to_purchase = amount_of_units_to_purchase * asset_prices[asset]
         available_cash -= market_value_of_units_to_purchase
         amount_to_purchase[asset] = amount_of_units_to_purchase
-    amount_to_purchase[CASH] += available_cash
+    amount_to_purchase[CASH] += int(available_cash)
     return amount_to_purchase
 
 
