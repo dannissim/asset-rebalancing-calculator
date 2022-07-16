@@ -1,3 +1,4 @@
+# TODO: require non leveraged assets market value to be higher than the loan amount
 import asyncio
 import json
 import os
