@@ -63,13 +63,9 @@ def standardize_input(user_input: Input):
     for asset in user_input.current_holdings:
         if asset not in user_input.target_allocation:
             user_input.target_allocation[asset] = 0
-        if asset not in user_input.leveraged_assets:
-            user_input.leveraged_assets[asset] = 1
     for asset in user_input.target_allocation:
         if asset not in user_input.current_holdings:
             user_input.current_holdings[asset] = 0
-        if asset not in user_input.leveraged_assets:
-            user_input.leveraged_assets[asset] = 1
     if CASH not in user_input.current_holdings:
         user_input.current_holdings[CASH] = 0
     if CASH not in user_input.target_allocation:
