@@ -1,5 +1,3 @@
-# TODO: require non leveraged assets market value to be higher than the loan amount
-# TODO: make first priority to make sure the portfolio's leverage is under the target portfolio leverage.
 import asyncio
 import json
 import os
