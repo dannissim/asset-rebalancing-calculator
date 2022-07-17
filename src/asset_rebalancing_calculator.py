@@ -28,7 +28,6 @@ class Input(pydantic.BaseModel):
     target_allocation: typing.Dict[str, float]
     deposit_amount: float
     current_holdings: typing.Dict[str, float]
-    leveraged_assets: typing.Dict[str, float]
 
     @pydantic.validator('target_allocation')
     def must_sum_to_100(cls, target_allocation: typing.Dict[str, float]):
@@ -47,25 +46,14 @@ class Result(pydantic.BaseModel):
 async def main():
     user_input = Input.parse_obj(json.loads(INPUT_FILE_PATH.read_text()))
     standardize_input(user_input)
-    target_portfolio_leverage_ratio = sum(
-        user_input.target_allocation[asset] * user_input.leveraged_assets[asset]
-        for asset in user_input.target_allocation) / HUNDRED_PERCENT
-    # asset_prices = await _get_all_prices(user_input.current_holdings.keys())
-    asset_prices = {
-        'tqqq': 26.335,
-        'schd': 72.0802,
-        'bulz': 4.2101,
-        'gbtc': 12.92,
-        'ethe': 7.955,
-        '_cash': 1
-    }
+    asset_prices = await _get_all_prices(user_input.current_holdings.keys())
     current_market_value = {
         asset: asset_prices[asset] * user_input.current_holdings[asset]
         for asset in asset_prices
     }
     market_value_difference = _get_market_value_difference(current_market_value, user_input)
     amount_to_purchase = _get_amount_to_purchase(market_value_difference, user_input.deposit_amount,
-                                                 asset_prices, target_portfolio_leverage_ratio)
+                                                 asset_prices)
     result = Result(current_allocation=_get_current_allocation(current_market_value),
                     new_allocation=_get_new_allocation(user_input, asset_prices,
                                                        amount_to_purchase),
@@ -107,13 +95,20 @@ async def _get_all_prices(assets: typing.Iterable[str]) -> typing.Dict[str, floa
 
 def _get_market_value_difference(current_market_value: typing.Dict[str, float],
                                  user_input: Input) -> typing.Dict[str, float]:
-    total_market_value_of_relevant_assets = sum(
-        current_market_value[asset] for asset in current_market_value
-        if asset in user_input.target_allocation) + user_input.deposit_amount
+    new_total_market_value = sum(current_market_value.values()) + user_input.deposit_amount
+    irrelevant_assets_market_value = sum(current_market_value[asset]
+                                         for asset in current_market_value
+                                         if user_input.target_allocation[asset] == 0)
+    total_market_value_of_relevant_assets = \
+        new_total_market_value - irrelevant_assets_market_value + \
+        (user_input.target_allocation[CASH] / HUNDRED_PERCENT) * irrelevant_assets_market_value
+
     target_market_value = {
         asset: total_market_value_of_relevant_assets * target_allocation / HUNDRED_PERCENT
         for asset, target_allocation in user_input.target_allocation.items()
     }
+    target_market_value[CASH] = \
+        new_total_market_value * user_input.target_allocation[CASH] / HUNDRED_PERCENT
     return {
         asset: target_market_value[asset] - current_market_value[asset]
         for asset in current_market_value
@@ -121,8 +116,7 @@ def _get_market_value_difference(current_market_value: typing.Dict[str, float],
 
 
 def _get_amount_to_purchase(market_value_difference: typing.Dict[str, float], deposit_amount: float,
-                            asset_prices: typing.Dict[str, float],
-                            target_portfolio_leverage: float) -> typing.Dict[str, int]:
+                            asset_prices: typing.Dict[str, float]) -> typing.Dict[str, int]:
     amount_to_purchase = dict()
     available_cash = deposit_amount
     if market_value_difference[CASH] < 0:
