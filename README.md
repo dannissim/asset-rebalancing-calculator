@@ -67,7 +67,8 @@ to your target allocation - without selling any of your current assets.
 1. Fill `input.json` with:
    1. `target_allocation` - the percent you would like each asset to be in your portfolio.
    2. `deposit_amount` - how many dollars you are adding to your portfolio.
-   3. `current_holdings` - How much do you have of each asset currently in your portfolio. 
+   3. `current_holdings` - How much do you have of each asset currently in your portfolio.
+   * Use our saved asset key "_cash" to indicate how much of your portfolio you would like to keep in cash.
 2. Create a virtual environment (optional):  
     a. `python -m venv venv`  
     b. `venv\Scripts\activate` or in linux `source venv/bin/activate`

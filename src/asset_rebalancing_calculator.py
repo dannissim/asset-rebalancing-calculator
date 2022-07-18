@@ -94,7 +94,7 @@ def _get_market_value_difference(current_market_value: typing.Dict[str, float],
                                          for asset in current_market_value
                                          if user_input.target_allocation[asset] == 0)
     total_market_value_of_relevant_assets = \
-        new_total_market_value - irrelevant_assets_market_value + \
+        new_total_market_value - irrelevant_assets_market_value - \
         (user_input.target_allocation[CASH] / HUNDRED_PERCENT) * irrelevant_assets_market_value
 
     target_market_value = {
@@ -151,6 +151,6 @@ def _get_new_allocation(user_input: Input, asset_prices: typing.Dict[str, float]
     for asset in user_input.current_holdings:
         new_market_value = (user_input.current_holdings[asset] +
                             amount_to_purchase[asset]) * asset_prices[asset]
-        new_proportion = new_market_value / new_total_market_value
-        new_allocation[asset] = round(HUNDRED_PERCENT * new_proportion, ROUND_PRECISION)
+        new_allocation_unformatted = new_market_value / new_total_market_value
+        new_allocation[asset] = round(HUNDRED_PERCENT * new_allocation_unformatted, ROUND_PRECISION)
     return new_allocation
